@@ -78,4 +78,40 @@ if submit_btn:
         st.markdown(f"*{concept_desc}*")
         st.write("---")
         
-        st.markdown
+        st.markdown("### 🧬 레시피 블렌딩 리포트")
+        st.table(df_notes)
+        
+        st.info(f"💡 **조향사 AI의 팁:** 이 향수는 분사 후 약 15분이 지났을 때 {df_notes['주요 원료'][1]}의 향이 극대화됩니다. {intensity}단계의 강도로 조율되어 은은하면서도 깊은 여운을 남깁니다.")
+
+    with col2:
+        st.markdown("### 📊 향기 프로필 시각화")
+        # Plotly Radar Chart
+        fig = px.line_polar(df_radar, r='Value', theta='Characteristic', line_close=True,
+                            template="plotly_white", color_discrete_sequence=['#8E44AD'])
+        fig.update_traces(fill='adjacent')
+        fig.update_layout(
+            polar=dict(radialaxis=dict(visible=True, range=[0, 10])),
+            showlegend=False,
+            margin=dict(l=40, r=40, t=40, b=40)
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # 무드 시각화 (Unsplash 기반 가상 무드 이미지 매칭)
+        st.markdown("### 🖼️ 이 향수가 머무는 공간의 무드")
+        img_url = "https://images.unsplash.com/photo-1547483238-2cbf88bd2426?auto=format&fit=crop&w=600&q=80" # 감성 서재/방 이미지
+        st.image(img_url, caption=f"AI가 형상화한 '{place}'의 시각적 무드", use_container_width=True)
+
+else:
+    # 초기 진입 화면
+    st.write("### 👈 왼쪽 사이드바에서 당신의 오늘의 무드와 공간을 선택하고 버튼을 눌러주세요.")
+    
+    # 영감을 주는 갤러리 레이아웃
+    st.write("---")
+    st.markdown("#### 🏛️ 다른 조향사들이 창조한 향기 공간")
+    g_col1, g_col2, g_col3 = st.columns(3)
+    with g_col1:
+        st.image("https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=300&q=80", caption="Midnight Library (우디&레더)")
+    with g_col2:
+        st.image("https://images.unsplash.com/photo-1528459801416-a9e53bbf4e17?auto=format&fit=crop&w=300&q=80", caption="Morning Dew (시트러스&그린)")
+    with g_col3:
+        st.image("https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=300&q=80", caption="Velvet Rose (오리엔탈&플로럴)")
