@@ -1,66 +1,81 @@
 import streamlit as st
-import time
+import plotly.express as px
 import pandas as pd
-import datetime
+import time
 
-# 1. 페이지 설정 및 다크모드 지향 테마 감성
+# 1. 페이지 기본 설정 및 스타일링
 st.set_page_config(
-    page_title="MindFlow - 나만의 멘탈 케어 공간",
-    page_icon="🧠",
-    layout="centered"
+    page_title="AromaCraft AI | AI 향수 조향 연구소",
+    page_icon="🧪",
+    layout="wide"
 )
 
-# 세션 상태(Session State) 초기화 - 새로고침해도 데이터가 유지되도록 함
-if "mood_history" not in st.session_state:
-    st.session_state.mood_history = []
+# 커스텀 CSS로 폰트 및 디자인 고급화
+st.markdown("""
+    <style>
+    .main { background-color: #fcfbf9; }
+    .stButton>button {
+        background-color: #2C3E50; color: white;
+        border-radius: 20px; padding: 10px 25px;
+        font-weight: bold; border: none; transition: 0.3s;
+    }
+    .stButton>button:hover { background-color: #1A252F; transform: scale(1.05); }
+    h1 { color: #2C3E50; font-family: 'Georgia', serif; }
+    h3 { color: #34495E; }
+    </style>
+""", unsafe_allow_html=True)
 
-# --- 헤더 섹션 ---
-st.title("🧠 MindFlow : 실시간 번아웃 방지 센터")
-st.write("오늘 하루, 당신의 마음 상태는 어떤가요? 감정을 기록하고 즉각적인 리프레시 가이드를 받아보세요.")
-st.divider()
+# 2. 헤더 섹션
+st.title("🧪 AromaCraft AI")
+st.subheader("당신의 감정과 공간을 향기로 빚어내는 AI 가상 조향 연구소")
+st.write("---")
 
-# --- STEP 1: 현재 상태 진단 ---
-st.subheader("1. 현재 나의 상태는?")
+# 3. 사이드바 - 사용자 입력 (무드 및 취향 설정)
+st.sidebar.header("✨ 향기 프로파일링")
 
-col1, col2 = st.columns(2)
+mood = st.sidebar.select_slider(
+    "오늘 당신의 마음 상태는 어떤가요?",
+    options=["차분하고 정적인", "포근하고 안락한", "생기 있고 활기찬", "몽환적이고 신비로운", "도시적이고 세련된"]
+)
 
-with col1:
-    energy_level = st.slider("⚡ 에너지 충전도 (0% = 방전, 100% = 열정 가득)", 0, 100, 50)
-    stress_level = st.slider("🔥 스트레스 지수 (0% = 평온, 100% = 폭발 직전)", 0, 100, 30)
+season = st.sidebar.selectbox("향수가 머무를 계절을 골라주세요.", ["봄 (Spring)", "여름 (Summer)", "가을 (Autumn)", "겨울 (Winter)"])
+place = st.sidebar.text_input("이 향이 채워질 공간이나 상황은? (예: 비 오는 날의 서재, 해질녘 해변)", "새벽녘 침실")
+intensity = st.sidebar.slider("향의 지속성 및 강도", 1, 5, 3)
 
-with col2:
-    current_mood = st.selectbox(
-        "🎭 현재 지배적인 감정은?",
-        ["평온함 😊", "집중/몰입 🎯", "불안/초조 😰", "지침/무기력 😴", "짜증/화남 😡"]
-    )
-    focus_time = st.number_input("⏳ 오늘 연속으로 업무(공부)한 시간 (시간 단위)", min_value=0.0, max_value=16.0, value=2.0, step=0.5)
+submit_btn = st.sidebar.button("🔮 나만의 향수 조향하기")
 
-# 상태 저장 버튼
-if st.button("📊 현재 상태 기록하기", use_container_width=True):
-    now = datetime.datetime.now().strftime("%H:%M:%S")
-    st.session_state.mood_history.append({
-        "시간": now,
-        "에너지": energy_level,
-        "스트레스": stress_level,
-        "감정": current_mood
-    })
-    st.toast("오늘의 마음 한 조각이 기록되었습니다! ✨")
-
-st.divider()
-
-# --- STEP 2: 실시간 맞춤형 처방 (인터랙션의 핵심) ---
-st.subheader("2. 당신을 위한 실시간 멘탈 처방전 💊")
-
-# 번아웃 위험도 계산 알고리즘 (간단한 규칙 기반)
-burnout_score = (stress_level * 0.6) + ((100 - energy_level) * 0.4) + (focus_time * 5)
-
-if burnout_score >= 70:
-    st.error(f"🚨 **위험: 번아웃 경보! (지수: {burnout_score:.1f})** 현재 심각한 과부하 상태일 수 있습니다. 당장 화면을 끄고 쉬세요!")
-    
-    # 애니메이션 효과를 활용한 호흡 가이드 컴포넌트
-    st.info("🧘‍♂️ **[🚨 긴급 처방] 4-7-8 호흡법을 시작합니다.** 아래 타이머에 맞춰 숨을 고르세요.")
-    if st.button("🫁 1분 호흡 타이머 시작"):
-        progress_bar = st.progress(0)
-        status_text = st.empty()
+# 4. 메인 화면 로직
+if submit_btn:
+    with st.spinner("🧙‍♂️ AI 조향사가 최적의 원료를 블렌딩하고 있습니다..."):
+        # 실제 환경에서는 이곳에 OpenAI API나 LLM을 연동하여 프롬프트를 보냅니다.
+        # 여기서는 퀄리티 높은 목업 데이터로 흐름을 구현했습니다.
+        time.sleep(2.5) 
         
-        # 4초 흡입 - 7초 유지 - 8초 배
+        # 가상의 AI 분석 결과 생성
+        perfume_name = f"L'Équilibre de {place.split()[0]}" if place else "Aroma N°5"
+        concept_desc = f"{mood} 감성과 {season}의 공기를 담아, '{place}'라는 공간에 완벽히 스며드는 커스텀 향수입니다."
+        
+        # 가상의 노트 데이터 (원래는 LLM이 JSON 형태로 반환하도록 설계)
+        notes_data = {
+            "노트 분류": ["Top Note", "Middle Note", "Base Note"],
+            "주요 원료": ["시트러스 베르가못 & 네롤리", "프렌치 라벤더 & 다마스크 로즈", "샌달우드 & 화이트 머스크"],
+            "배합 비율 (%)": [35, 40, 25]
+        }
+        df_notes = pd.DataFrame(notes_data)
+        
+        # 레이더 차트용 가상 성향 데이터
+        radar_data = {
+            "Characteristic": ["우디 (Woody)", "플로럴 (Floral)", "시트러스 (Citrus)", "스파이시 (Spicy)", "머스크 (Musky)", "그린 (Green)"],
+            "Value": [6, 4, 8, 2, 7, 5] if "차분" in mood else [8, 2, 3, 5, 9, 4]
+        }
+        df_radar = pd.DataFrame(radar_data)
+
+    # 결과 레이아웃 배치 (2단 컬럼)
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.markdown(f"## 🏷️ {perfume_name}")
+        st.markdown(f"*{concept_desc}*")
+        st.write("---")
+        
+        st.markdown
